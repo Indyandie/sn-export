@@ -1,7 +1,11 @@
 {
   "tasks": {
     "export": {
-      "description": "Export notes as markdown",
+      "description": "Export notes as markdown.\n\ndeno task export [-f/--file file-path] [-o/--output dir-path]",
+      "command": "deno run --allow-read --allow-write convert.js"
+    },
+    "export-data": {
+      "description": "Export notes from `data.json` as markdown files",
       "command": "deno run --allow-read=. --allow-write=. convert.js -f data.json"
     }
   }
