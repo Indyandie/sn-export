@@ -1,4 +1,3 @@
-import standard from './data.json' with { type: 'json' }
 import { parseArgs } from 'jsr:@std/cli/parse-args'
 
 const args = parseArgs(Deno.args, {
@@ -9,23 +8,12 @@ const args = parseArgs(Deno.args, {
 })
 
 const snFile = args.file
-console.log(snFile)
 
 let snJson = await Deno.readTextFile(snFile)
 snJson = JSON.parse(snJson)
 console.log(snJson)
 
-// using file = await Deno.open(snFile, { read: true });
-// const fileInfo = await file.stat();
-// if (fileInfo.isFile) {
-//   const buf = new Uint8Array(100);
-//   const numberOfBytesRead = await file.read(buf); // 11 bytes
-//   const text = new TextDecoder().decode(buf);  // "hello world"
-// } else {
-//   console.snFile, " is not a file"
-// }
-
-let notes = standard.items.filter((item) => item.content_type === 'Note')
+let notes = snJson.items.filter((item) => item.content_type === 'Note')
 
 notes = notes.map((note) => {
   const { created_at, updated_at, content, uuid } = note
@@ -47,7 +35,7 @@ notes.map((note) => {
   notesObj[note.uuid] = note
 })
 
-let tags = standard.items.filter((item) => item.content_type === 'Tag')
+let tags = snJson.items.filter((item) => item.content_type === 'Tag')
 
 tags = tags.map((tag) => {
   const { created_at, updated_at, content, uuid } = tag
