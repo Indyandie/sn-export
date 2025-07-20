@@ -13,26 +13,22 @@ let snJson = await Deno.readTextFile(snFile)
 snJson = JSON.parse(snJson)
 console.log(snJson)
 
-let notes = snJson.items.filter((item) => item.content_type === 'Note')
+const notes = snJson.items.filter((item) => item.content_type === 'Note')
+const notesObj = {}
 
-notes = notes.map((note) => {
+notes.map((note) => {
   const { created_at, updated_at, content, uuid } = note
   const { title, text, noteType } = content
 
-  return {
-    created_at,
-    updated_at,
+  notesObj[uuid] = {
     uuid,
     title,
+    created_at,
+    updated_at,
     text,
     noteType,
     tags: [],
   }
-})
-
-const notesObj = {}
-notes.map((note) => {
-  notesObj[note.uuid] = note
 })
 
 let tags = snJson.items.filter((item) => item.content_type === 'Tag')
@@ -76,38 +72,28 @@ function createPath() {
   }
 }
 
-async function _createDirectoriesFiles() {
+async function createDirectoriesFiles() {
   for (const key in tagObj) {
     const tag = tagObj[key]
     const { path, notes } = tag
-    // console.log(notes)
-    // console.log(notesObj[notes[0].uuid])
     await Deno.mkdir(`${path}`, { recursive: true })
 
     for (const index in notes) {
-      // console.log('note: ', notesObj[notes[index].uuid])
       const thisNote = notesObj[notes[index].uuid]
 
-      // console.log(typeof thisNote)
       if (thisNote !== undefined) {
         let { title, text, created_at, updated_at } = notesObj[notes[index].uuid]
-        // console.log('\n', path, title)
         title = (title === undefined) ? created_at : title
+
         const fileName = `${path}/${title.toLowerCase().replaceAll(' ', '-')}.md`
         const frontmatter = `---\ncreated_at: ${created_at}\nupdate_at: ${updated_at}\n---\n\n`
-        console.log(fileName, '\n', frontmatter, text)
         text = frontmatter + text
 
         await Deno.writeTextFile(fileName, text, { create: true })
       }
     }
-
-    // create dir
   }
 }
 
 createPath()
-_createDirectoriesFiles()
-
-// console.log(tagObj)
-// await Deno.mkdir("test/test")
+createDirectoriesFiles()
