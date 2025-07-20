@@ -1,0 +1,8 @@
+{
+  "tasks": {
+    "export": {
+      "description": "Export notes as markdown",
+      "command": "deno run --allow-read=. --allow-write=. convert.js -f data.json"
+    }
+  }
+}
