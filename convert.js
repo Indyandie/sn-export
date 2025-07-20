@@ -1,13 +1,16 @@
 import { parseArgs } from 'jsr:@std/cli/parse-args'
 
 const args = parseArgs(Deno.args, {
-  string: ['file'],
+  string: ['file', 'output'],
   alias: {
     file: 'f',
+    output: 'o',
   },
+  default: { output: './output' },
 })
 
 const snFile = args.file
+const output = args.output
 
 let snJson = await Deno.readTextFile(snFile)
 snJson = JSON.parse(snJson)
@@ -60,7 +63,7 @@ function createPath() {
         const hasParent = (tag.parentTag === undefined) ? false : true
 
         if (!hasParent) {
-          tagObj[tag.uuid].path = `./test/${tag.title}`
+          tagObj[tag.uuid].path = `${output}/${tag.title}`
         } else if (tagObj[tag.parentTag.uuid].path !== undefined) {
           tagObj[tag.uuid].path = `${tagObj[tag.parentTag.uuid].path}/${tag.title}`
         } else {
