@@ -11,7 +11,6 @@ const snFile = args.file
 
 let snJson = await Deno.readTextFile(snFile)
 snJson = JSON.parse(snJson)
-console.log(snJson)
 
 const notes = snJson.items.filter((item) => item.content_type === 'Note')
 const notesObj = {}
@@ -57,9 +56,9 @@ tags.map((tag) => {
 function createPath() {
   while (tags.length > 0) {
     tags = tags
-      .map((tag, index) => {
+      .map((tag) => {
         const hasParent = (tag.parentTag === undefined) ? false : true
-        // console.log('has a parent', hasParent, tag.parentTag)
+
         if (!hasParent) {
           tagObj[tag.uuid].path = `./test/${tag.title}`
         } else if (tagObj[tag.parentTag.uuid].path !== undefined) {
