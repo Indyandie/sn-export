@@ -63,6 +63,10 @@ tags.map((tag) => {
   tagObj[tag.uuid] = tag
 })
 
+function sanitize(name) {
+  return name.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'untitled'
+}
+
 function createPath() {
   while (tags.length > 0) {
     const prevLength = tags.length
@@ -72,14 +76,15 @@ function createPath() {
         const hasParent = (tag.parentTag === undefined) ? false : true
 
         if (!hasParent) {
-          tagObj[tag.uuid].path = `${output}/${tag.title}`
+          tagObj[tag.uuid].path = `${output}/${sanitize(tag.title)}`
         } else if (tagObj[tag.parentTag.uuid].path !== undefined) {
-          tagObj[tag.uuid].path = `${tagObj[tag.parentTag.uuid].path}/${tag.title}`
+          tagObj[tag.uuid].path = `${tagObj[tag.parentTag.uuid].path}/${sanitize(tag.title)}`
         } else {
           return tag
         }
       })
       .filter((tag) => tag !== undefined)
+
     if (tags.length === prevLength && tags.length > 0) {
       throw new Error(`Cycle detected in tag hierarchy involving tag: ${tags[0].title} (UUID: ${tags[0].uuid})`)
     }
@@ -101,6 +106,7 @@ async function createDirectoriesFiles() {
 
         const fileName = `${path}/${title.toLowerCase().replaceAll(' ', '-')}.md`
         const frontmatter = `---\ncreated_at: ${created_at}\nupdate_at: ${updated_at}\n---\n\n`
+        const fileName = `${path}/${sanitize(title)}.md`
         text = frontmatter + text
 
         await Deno.writeTextFile(fileName, text, { create: true })
