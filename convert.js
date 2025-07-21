@@ -9,17 +9,21 @@ const args = parseArgs(Deno.args, {
   default: { output: './output' },
 })
 
-const snFile = args.file
+const { file: snFile, output } = args
 
 if (!snFile) {
   console.error('File required')
   Deno.exit(1)
 }
 
-const output = args.output
-
-let snJson = await Deno.readTextFile(snFile)
-snJson = JSON.parse(snJson)
+let snJson
+try {
+  snJson = await Deno.readTextFile(snFile)
+  snJson = JSON.parse(snJson)
+} catch (error) {
+  console.error(`error reading or parsing file (${snFile}):`, error.message)
+  Deno.exit(1)
+}
 
 const notes = snJson.items.filter((item) => item.content_type === 'Note')
 const notesObj = {}
