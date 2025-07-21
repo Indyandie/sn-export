@@ -92,6 +92,8 @@ function createPath() {
 }
 
 async function createDirectoriesFiles() {
+  const taggedNotes = new Set()
+
   for (const key in tagObj) {
     const tag = tagObj[key]
     const { path, notes } = tag
@@ -99,18 +101,34 @@ async function createDirectoriesFiles() {
 
     for (const index in notes) {
       const thisNote = notesObj[notes[index].uuid]
+      taggedNotes.add(notes[index].uuid)
 
       if (thisNote !== undefined) {
-        let { title, text, created_at, updated_at } = notesObj[notes[index].uuid]
+        let { title, text, created_at, updated_at } = thisNote
         title = (title === undefined) ? created_at : title
 
-        const fileName = `${path}/${title.toLowerCase().replaceAll(' ', '-')}.md`
-        const frontmatter = `---\ncreated_at: ${created_at}\nupdate_at: ${updated_at}\n---\n\n`
         const fileName = `${path}/${sanitize(title)}.md`
+        const frontmatter = `---\ncreated_at: ${created_at}\nupdated_at: ${updated_at}\n---\n\n`
         text = frontmatter + text
 
         await Deno.writeTextFile(fileName, text, { create: true })
       }
+    }
+  }
+
+  const miscPath = `${output}/misc-no-tags`
+  await Deno.mkdir(miscPath, { recursive: true })
+
+  for (const uuid in notesObj) {
+    if (!taggedNotes.has(uuid)) {
+      let { title, text, created_at, updated_at } = notesObj[uuid]
+      title = (title === undefined) ? created_at : title
+
+      const fileName = `${miscPath}/${sanitize(title)}.md`
+      const frontmatter = `---\ncreated_at: ${created_at}\nupdated_at: ${updated_at}\n---\n\n`
+      text = frontmatter + text
+
+      await Deno.writeTextFile(fileName, text, { create: true })
     }
   }
 }
