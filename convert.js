@@ -10,6 +10,7 @@ const args = parseArgs(Deno.args, {
 })
 
 const snFile = args.file
+
 if (!snFile) {
   console.error('File required')
   Deno.exit(1)
@@ -45,14 +46,15 @@ tags = tags.map((tag) => {
   const { title, references } = content
 
   const parentTag = references.find((ref) => ref.reference_type === 'TagToParentTag')
-  const notes = references.filter((ref) => ref.content_type === 'Note')
+
+  const notes = references.filter((ref) => ref.content_type === 'Note') || []
   return {
     created_at,
     updated_at,
     uuid,
     title,
     parentTag: parentTag || undefined,
-    notes: notes || undefined,
+    notes,
   }
 })
 
