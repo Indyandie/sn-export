@@ -10,6 +10,11 @@ const args = parseArgs(Deno.args, {
 })
 
 const snFile = args.file
+if (!snFile) {
+  console.error('File required')
+  Deno.exit(1)
+}
+
 const output = args.output
 
 let snJson = await Deno.readTextFile(snFile)
