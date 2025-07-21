@@ -134,4 +134,4 @@ async function createDirectoriesFiles() {
 }
 
 createPath()
-createDirectoriesFiles()
+await createDirectoriesFiles()
