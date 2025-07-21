@@ -74,7 +74,6 @@ function sanitize(name) {
 function createPath() {
   while (tags.length > 0) {
     const prevLength = tags.length
-
     tags = tags
       .map((tag) => {
         const hasParent = (tag.parentTag === undefined) ? false : true
@@ -95,44 +94,66 @@ function createPath() {
   }
 }
 
+async function writeNoteFile(basePath, note) {
+  let { title, text, created_at, updated_at } = note
+  title = title ?? created_at
+  let fileName = `${basePath}/${sanitize(title)}.md`
+  let counter = 1
+
+  while (true) {
+    try {
+      await Deno.stat(fileName)
+      fileName = `${basePath}/${sanitize(title)}-${counter}.md`
+      counter++
+    } catch (error) {
+      if (error instanceof Deno.errors.NotFound) {
+        break
+      }
+
+      throw error
+    }
+  }
+
+  const frontmatter = `---\ncreated_at: ${created_at}\nupdated_at: ${updated_at}\n---\n\n`
+  text = frontmatter + text
+
+  await Deno.writeTextFile(fileName, text, { create: true })
+}
+
 async function createDirectoriesFiles() {
   const taggedNotes = new Set()
 
   for (const key in tagObj) {
     const tag = tagObj[key]
     const { path, notes } = tag
-    await Deno.mkdir(`${path}`, { recursive: true })
+
+    try {
+      await Deno.mkdir(`${path}`, { recursive: true })
+    } catch (error) {
+      console.error(`Error creating directory ${path}:`, error.message)
+    }
 
     for (const index in notes) {
       const thisNote = notesObj[notes[index].uuid]
-      taggedNotes.add(notes[index].uuid)
 
-      if (thisNote !== undefined) {
-        let { title, text, created_at, updated_at } = thisNote
-        title = (title === undefined) ? created_at : title
-
-        const fileName = `${path}/${sanitize(title)}.md`
-        const frontmatter = `---\ncreated_at: ${created_at}\nupdated_at: ${updated_at}\n---\n\n`
-        text = frontmatter + text
-
-        await Deno.writeTextFile(fileName, text, { create: true })
+      if (thisNote) {
+        taggedNotes.add(notes[index].uuid)
+        await writeNoteFile(path, thisNote)
       }
     }
   }
 
   const miscPath = `${output}/misc-no-tags`
-  await Deno.mkdir(miscPath, { recursive: true })
+
+  try {
+    await Deno.mkdir(miscPath, { recursive: true })
+  } catch (error) {
+    console.error(`Error creating directory ${miscPath}:`, error.message)
+  }
 
   for (const uuid in notesObj) {
     if (!taggedNotes.has(uuid)) {
-      let { title, text, created_at, updated_at } = notesObj[uuid]
-      title = (title === undefined) ? created_at : title
-
-      const fileName = `${miscPath}/${sanitize(title)}.md`
-      const frontmatter = `---\ncreated_at: ${created_at}\nupdated_at: ${updated_at}\n---\n\n`
-      text = frontmatter + text
-
-      await Deno.writeTextFile(fileName, text, { create: true })
+      await writeNoteFile(miscPath, notesObj[uuid])
     }
   }
 }
