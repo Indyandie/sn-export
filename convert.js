@@ -65,6 +65,8 @@ tags.map((tag) => {
 
 function createPath() {
   while (tags.length > 0) {
+    const prevLength = tags.length
+
     tags = tags
       .map((tag) => {
         const hasParent = (tag.parentTag === undefined) ? false : true
@@ -78,6 +80,9 @@ function createPath() {
         }
       })
       .filter((tag) => tag !== undefined)
+    if (tags.length === prevLength && tags.length > 0) {
+      throw new Error(`Cycle detected in tag hierarchy involving tag: ${tags[0].title} (UUID: ${tags[0].uuid})`)
+    }
   }
 }
 
